@@ -63,7 +63,7 @@ public class PhotoService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				List<Map<Object, Object>> rawResponseList = (List<Map<Object, Object>>) rawResponse.get("data");
 				if (rawResponseList != null) {
@@ -105,7 +105,7 @@ public class PhotoService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				photo = createPhotoFromMap(rawResponse);
 			}
@@ -147,7 +147,7 @@ public class PhotoService {
 			ByteArrayEntity imageEntity = new ByteArrayEntity(bytes);
 			httpPut.setEntity(imageEntity);
 
-			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				//newPhoto = getPhoto(accessToken, rawResponse.get("id").toString());
 				//newPhoto = createPhotoFromMap(rawResponse);
@@ -219,7 +219,7 @@ public class PhotoService {
 			httpPut.setHeader("Authorization", "Bearer " + accessToken);
 			httpPut.setEntity(jsonEntity);
 
-			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				updatedPhoto = createPhotoFromMap(rawResponse);
 				// Do not get the photo id. revert to the original prior to the update
@@ -253,7 +253,7 @@ public class PhotoService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpDelete httpDelete = new HttpDelete(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				System.out.println(rawResponse);
 			}

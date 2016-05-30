@@ -55,7 +55,7 @@ public class AlbumService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				List<Map<Object, Object>> rawResponseList = (List<Map<Object, Object>>) rawResponse.get("data");
 				if (rawResponseList != null) {
@@ -87,7 +87,7 @@ public class AlbumService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				album = createAlbumFromMap(rawResponse);
 			}
@@ -125,7 +125,7 @@ public class AlbumService {
 			httpPost.setHeader("Authorization", "Bearer " + accessToken);
 			httpPost.setEntity(jsonEntity);
 
-			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				if (rawResponse.containsKey("error")) {
 					Map<Object, Object> errorBody = (Map<Object, Object>) rawResponse.get("error");
@@ -170,7 +170,7 @@ public class AlbumService {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpDelete httpDelete = new HttpDelete(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				System.out.println(rawResponse);
 			}
@@ -204,7 +204,7 @@ public class AlbumService {
 			httpPost.setHeader("Authorization", "Bearer " + accessToken);
 			httpPost.setEntity(jsonEntity);
 
-			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveResponseHandler());
+			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				updatedAlbum = createAlbumFromMap(rawResponse);
 				// Do not get the updated id. revert to the original prior to the update
