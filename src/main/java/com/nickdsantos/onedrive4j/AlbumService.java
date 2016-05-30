@@ -4,19 +4,9 @@
 
 package com.nickdsantos.onedrive4j;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.http.client.ClientProtocolException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.nickdsantos.onedrive4j.Resource.SharedWith;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -27,9 +17,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.nickdsantos.onedrive4j.Resource.SharedWith;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nick DS (me@nickdsantos.com)
@@ -54,14 +49,11 @@ public class AlbumService {
 						.setPath(ALBUM_URL_PATH)
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-		
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
 			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
 			if (rawResponse != null) {
@@ -71,13 +63,9 @@ public class AlbumService {
 						albums.add(createAlbumFromMap(respData));
 					}
 				}
-			}		
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+			}
+		} catch (Exception e) {
+			throw new IOException("Error getting albums", e);
 		}
 		
 		return albums.toArray(new Album[albums.size()]);
@@ -93,25 +81,18 @@ public class AlbumService {
 						.setPath("/" + albumId)
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-		
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
 			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
 			if (rawResponse != null) {
 				album = createAlbumFromMap(rawResponse);
-			}		
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+			}
+		} catch (Exception e) {
+			throw new IOException("Error getting album: " + albumId, e);
 		}
 		
 		return album;
@@ -126,42 +107,39 @@ public class AlbumService {
 						.setHost(API_HOST)
 						.setPath(ALBUM_URL_PATH)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {
-			Map<String, String> params = new HashMap<String, String>();
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			Map<String, String> params = new HashMap<>();
 			params.put("name", name);
 			params.put("description", description);
-			
+
 			Gson gson = new GsonBuilder().create();
 			String jsonString = gson.toJson(params);
 			StringEntity jsonEntity = new StringEntity(jsonString);
 			jsonEntity.setContentType(new BasicHeader("Content-Type", "application/json"));
-							
+
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.setHeader("Authorization", "Bearer " + accessToken);
-			httpPost.setEntity(jsonEntity);					
-			
+			httpPost.setEntity(jsonEntity);
+
 			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveResponseHandler());
-			if (rawResponse !=null) {
+			if (rawResponse != null) {
 				if (rawResponse.containsKey("error")) {
 					Map<Object, Object> errorBody = (Map<Object, Object>) rawResponse.get("error");
-					
+
 					if (errorBody.get("code").equals("resource_already_exists")) {
 						// album already exists; obtain that album and return it
 						Album[] existingAlbums = this.getAlbums(accessToken);
-						for (Album a: existingAlbums) {
+						for (Album a : existingAlbums) {
 							if (a.getName().equals(name)) {
 								newAlbum = a;
 								break;
 							}
 						}
-						
+
 					} else {
 						throw new IOException(String.format("%s : %s", errorBody.get("code"), errorBody.get("message")));
 					}
@@ -172,8 +150,6 @@ public class AlbumService {
 				throw new IOException("No response");
 			}
 
-		} finally {
-			httpClient.close();
 		}
 	
 		return newAlbum;
@@ -188,21 +164,16 @@ public class AlbumService {
 						.setPath("/" + albumId)
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {						
-			HttpDelete httpDelete = new HttpDelete(uri);						
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpDelete httpDelete = new HttpDelete(uri);
 			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveResponseHandler());
 			if (rawResponse != null) {
-				System.out.println(rawResponse);					
-			}	
-		} finally {
-			httpClient.close();
+				System.out.println(rawResponse);
+			}
 		}
 	}
 	
@@ -215,35 +186,30 @@ public class AlbumService {
 				.setHost(API_HOST)
 				.setPath("/" + albumId)				
 				.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {
-			Map<String, String> params = new HashMap<String, String>();
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			Map<String, String> params = new HashMap<>();
 			params.put("name", name);
 			params.put("description", description);
-			
+
 			Gson gson = new GsonBuilder().create();
 			String jsonString = gson.toJson(params);
 			StringEntity jsonEntity = new StringEntity(jsonString);
 			jsonEntity.setContentType(new BasicHeader("Content-Type", "application/json"));
-							
+
 			HttpPost httpPost = new HttpPost(uri);
 			httpPost.setHeader("Authorization", "Bearer " + accessToken);
-			httpPost.setEntity(jsonEntity);					
-			
+			httpPost.setEntity(jsonEntity);
+
 			Map<Object, Object> rawResponse = httpClient.execute(httpPost, new OneDriveResponseHandler());
 			if (rawResponse != null) {
 				updatedAlbum = createAlbumFromMap(rawResponse);
 				// Do not get the updated id. revert to the original prior to the update
 				updatedAlbum.setId(albumId);
-			}		
-		} finally {
-			httpClient.close();
+			}
 		}
 	
 		return updatedAlbum;
@@ -251,7 +217,7 @@ public class AlbumService {
 	
 	private Album createAlbumFromMap(Map<Object, Object> responseMap) {
 		SimpleDateFormat dtFormat = new SimpleDateFormat("YYYY-MM-dd'T'HH:mm:ssZ");		
-		Album album = null;
+		Album album;
 		try {			
 			Map<String, String> fromUserMap = (Map<String, String>) responseMap.get("from");
 			User fromUser = new User();
@@ -274,10 +240,8 @@ public class AlbumService {
 			album.setCreatedTime(dtFormat.parse(responseMap.get("created_time").toString()));
 			album.setUpdatedTime(dtFormat.parse(responseMap.get("updated_time").toString()));
 			album.setClientUpdateTime(dtFormat.parse(responseMap.get("client_updated_time").toString()));
-		} catch (ParseException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Error parsing album", e);
 		}
 		
 		return album;
