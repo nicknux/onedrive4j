@@ -5,7 +5,7 @@ package com.nickdsantos.onedrive4j;
  *
  * @author Luke Quinane
  */
-public class DriveFolder {
+public class FolderFacet {
     /**
      * The child count.
      */

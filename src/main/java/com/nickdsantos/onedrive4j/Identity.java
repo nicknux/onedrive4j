@@ -1,18 +1,18 @@
 package com.nickdsantos.onedrive4j;
 
 /**
- * A user in a {@link Drive}.
+ * An identity in a {@link Drive}.
  *
  * @author Luke Quinane
  */
-public class DriveUser {
+public class Identity {
     /**
      * The display name.
      */
     public String displayName;
 
     /**
-     * The user's ID.
+     * The ID.
      */
     public String id;
 }

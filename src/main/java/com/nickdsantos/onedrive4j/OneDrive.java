@@ -132,5 +132,51 @@ public class OneDrive {
 		}
 		
 		return accessToken;
-	}	
+	}
+
+	/**
+	 * Gets a new access token from a previously acquired refresh token.
+	 *
+	 * @param refreshToken the refresh token.
+	 * @return the access token.
+	 * @throws IOException if an error occurs.
+     */
+	public AccessToken getAccessTokenFromRefreshToken(String refreshToken) throws IOException {
+		AccessToken accessToken = null;
+		URI uri;
+		try {
+			uri = new URIBuilder()
+						.setScheme(DEFAULT_SCHEME)
+						.setHost(LOGIN_API_HOST)
+						.setPath(ACCESS_TOKEN_URL_PATH)
+						.build();
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid access token path", e);
+		}
+
+		List<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("client_id", _clientId));
+		params.add(new BasicNameValuePair("redirect_uri", _callback));
+		params.add(new BasicNameValuePair("client_secret", _clientSecret));
+		params.add(new BasicNameValuePair("refresh_token", refreshToken));
+		UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Consts.UTF_8);
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpPost httpPost = new HttpPost(uri);
+			httpPost.setEntity(formEntity);
+
+			Map<Object, Object> rawToken = httpClient.execute(httpPost, new OneDriveJsonToMapResponseHandler());
+			if (rawToken != null) {
+				accessToken = new AccessToken(
+						rawToken.get("token_type").toString(),
+						(int) Double.parseDouble(rawToken.get("expires_in").toString()),
+						rawToken.get("scope").toString(),
+						rawToken.get("access_token").toString(),
+						Objects.toString(rawToken.get("refresh_token"), null),
+						Objects.toString(rawToken.get("user_id"), null));
+			}
+		}
+
+		return accessToken;
+	}
 }

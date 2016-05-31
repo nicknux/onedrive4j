@@ -19,7 +19,7 @@ public class Drive {
     /**
      * The owner of the drive.
      */
-    public DriveOwner owner;
+    public IdentitySet owner;
 
     /**
      * The quota details.

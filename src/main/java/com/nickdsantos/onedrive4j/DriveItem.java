@@ -22,12 +22,12 @@ public class DriveItem {
     /**
      * The user who created the item.
      */
-    public DriveOwner createdBy;
+    public IdentitySet createdBy;
 
     /**
      * The user who last modified the item.
      */
-    public DriveOwner lastModifiedBy;
+    public IdentitySet lastModifiedBy;
 
     /**
      * The creation date/time.
@@ -39,8 +39,14 @@ public class DriveItem {
      */
     public String lastModifiedDateTime;
 
+    /**
+     * An eTag for the item's content.
+     */
     public String cTag;
 
+    /**
+     * An eTag for the item's content and metadata.
+     */
     public String eTag;
 
     /**
@@ -49,9 +55,14 @@ public class DriveItem {
     public String name;
 
     /**
+     * The item's description
+     */
+    public String description;
+
+    /**
      * The details of the parent item.
      */
-    public DriveParentReference parentReference;
+    public ItemReference parentReference;
 
     /**
      * The size.
@@ -66,10 +77,24 @@ public class DriveItem {
     /**
      * The file system info.
      */
-    public DriveFileSystemInfo fileSystemInfo;
+    public FileSystemInfoFacet fileSystemInfo;
+
+    /**
+     * The location facet.
+     */
+    public LocationFacet location;
+    /**
+     * The deleted facet.
+     */
+    public DeletedFacet deleted;
+
+    /**
+     * The file information.
+     */
+    public FileFacet file;
 
     /**
      * The folder information.
      */
-    public DriveFolder folder;
+    public FolderFacet folder;
 }

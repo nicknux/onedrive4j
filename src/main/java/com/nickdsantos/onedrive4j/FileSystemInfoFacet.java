@@ -5,7 +5,7 @@ package com.nickdsantos.onedrive4j;
  *
  * @author Luke Quinane
  */
-public class DriveFileSystemInfo {
+public class FileSystemInfoFacet {
     /**
      * The created date/time.
      */

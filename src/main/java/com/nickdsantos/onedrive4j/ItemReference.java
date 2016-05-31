@@ -1,11 +1,11 @@
 package com.nickdsantos.onedrive4j;
 
 /**
- * A reference to a parent item.
+ * A reference to an item.
  *
  * @author Luke Quinane
  */
-public class DriveParentReference {
+public class ItemReference {
     /**
      * The parent Id.
      */
