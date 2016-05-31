@@ -4,9 +4,11 @@
 
 package com.nickdsantos.onedrive4j;
 
+import com.google.gson.Gson;
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -159,6 +161,7 @@ public class OneDrive {
 		params.add(new BasicNameValuePair("redirect_uri", _callback));
 		params.add(new BasicNameValuePair("client_secret", _clientSecret));
 		params.add(new BasicNameValuePair("refresh_token", refreshToken));
+		params.add(new BasicNameValuePair("grant_type", "refresh_token"));
 		UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Consts.UTF_8);
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -178,5 +181,34 @@ public class OneDrive {
 		}
 
 		return accessToken;
+	}
+
+	/**
+	 * Gets the details about the current user.
+	 *
+	 * @param accessToken the access token.
+	 * @return the user's details.
+	 * @throws IOException if an error occurs.
+	 */
+	public Me getMe(String accessToken) throws IOException {
+		URI uri;
+		try {
+			uri = new URIBuilder()
+					.setScheme(DEFAULT_SCHEME)
+					.setHost("apis.live.net/v5.0")
+					.setPath("/me")
+					.addParameter("access_token", accessToken)
+					.build();
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid drives path", e);
+		}
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpGet httpGet = new HttpGet(uri);
+			String rawResponse = httpClient.execute(httpGet, new OneDriveStringResponseHandler());
+			return new Gson().fromJson(rawResponse, Me.class);
+		} catch (Exception e) {
+			throw new IOException("Error getting drives", e);
+		}
 	}
 }
