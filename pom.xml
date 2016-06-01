@@ -33,12 +33,6 @@
   	</dependency>
   	<dependency>
   		<groupId>org.apache.httpcomponents</groupId>
-  		<artifactId>httpcomponents-core</artifactId>
-  		<version>4.3.2</version>
-  		<type>pom</type>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.httpcomponents</groupId>
   		<artifactId>httpmime</artifactId>
   		<version>4.3.3</version>
   	</dependency>
