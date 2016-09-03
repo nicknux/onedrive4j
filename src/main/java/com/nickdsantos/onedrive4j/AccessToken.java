@@ -14,14 +14,17 @@ public class AccessToken {
 	private int _expiresIn;
 	private String _scope;
 	private String _accessToken;
-	private String _authenticationToken;
+	private String _refreshoken;
+	private String _userId;
 	
-	public AccessToken(String tokenType, int expiresIn, String scope, String accessToken, String authenticationToken) {
+	public AccessToken(String tokenType, int expiresIn, String scope, String accessToken, String refreshToken,
+					   String userId) {
 		_tokenType = tokenType;
 		_expiresIn = expiresIn;
 		_scope = scope;
 		_accessToken = accessToken;
-		_authenticationToken = authenticationToken;
+		_refreshoken = refreshToken;
+		_userId = userId;
 	}
 	
 	/**
@@ -72,26 +75,35 @@ public class AccessToken {
 	public String getAccessToken() {
 		return _accessToken;
 	}
-	
+
 	/**
 	 * @param accessToken the accessToken to set
 	 */
 	public void setAccessToken(String accessToken) {
 		_accessToken = accessToken;
 	}
-	
+
 	/**
-	 * @return the authenticationToken
+	 * Gets the refresh token.
+	 *
+	 * @return the refresh token.
 	 */
-	public String getAuthenticationToken() {
-		return _authenticationToken;
+	public String getRefreshToken() {
+		return _refreshoken;
+	}
+
+	/**
+	 * @return the user Id
+	 */
+	public String getUserId() {
+		return _userId;
 	}
 	
 	/**
-	 * @param authenticationToken the authenticationToken to set
+	 * @param userId the user Id  to set
 	 */
-	public void setAuthenticationToken(String authenticationToken) {
-		_authenticationToken = authenticationToken;
+	public void setUserId(String userId) {
+		_userId = userId;
 	}
 	
 }

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nickdsantos.onedrive4j</groupId>
   <artifactId>onedrive4j</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <name>OneDrive4J</name>
   <description>OneDrive Library for Java</description>
   <dependencies>
@@ -16,16 +16,20 @@
   		<artifactId>gson</artifactId>
   		<version>2.2.4</version>
   	</dependency>
-  	<dependency>
-  		<groupId>log4j</groupId>
-  		<artifactId>log4j</artifactId>
-  		<version>1.2.17</version>  		
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.httpcomponents</groupId>
-  		<artifactId>httpcomponents-core</artifactId>
-  		<version>4.3.2</version>
-  		<type>pom</type>
+	<dependency>
+	  <groupId>com.google.guava</groupId>
+	  <artifactId>guava</artifactId>
+	  <version>19.0</version>
+	</dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.5</version>
+    </dependency>
+	<dependency>
+  	  <groupId>log4j</groupId>
+  	  <artifactId>log4j</artifactId>
+	  <version>1.2.17</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.httpcomponents</groupId>

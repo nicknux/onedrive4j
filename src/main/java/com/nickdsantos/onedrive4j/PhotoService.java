@@ -4,18 +4,9 @@
 
 package com.nickdsantos.onedrive4j;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.http.client.ClientProtocolException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.nickdsantos.onedrive4j.Resource.SharedWith;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -27,9 +18,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.nickdsantos.onedrive4j.Resource.SharedWith;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author Nick DS (me@nickdsantos.com)
@@ -55,7 +48,7 @@ public class PhotoService {
 	 * @throws IOException
 	 */
 	public Photo[] getPhotos(String accessToken, String albumId) throws IOException {
-		ArrayList<Photo> photos = new ArrayList<Photo>();
+		ArrayList<Photo> photos = new ArrayList<>();
 		URI uri;
 		try {			
 			uri = new URIBuilder()
@@ -64,33 +57,26 @@ public class PhotoService {
 						.setPath("/" + albumId + "/files")
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-		
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpGet httpGet = new HttpGet(uri);
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
-			if (rawResponse != null) {				
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
+			if (rawResponse != null) {
 				List<Map<Object, Object>> rawResponseList = (List<Map<Object, Object>>) rawResponse.get("data");
 				if (rawResponseList != null) {
 					for (Map<Object, Object> respData : rawResponseList) {
 						Photo p = createPhotoFromMap(respData);
-						if (p != null) {							
+						if (p != null) {
 							photos.add(p);
 						}
 					}
-				}				
-			}		
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+				}
+			}
+		} catch (Exception e) {
+			throw new IOException("Error getting photos, album: " + albumId, e);
 		}
 		
 		return photos.toArray(new Photo[photos.size()]);
@@ -113,25 +99,18 @@ public class PhotoService {
 						.setPath("/" + photoId)
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();
-		
-		try {
-			HttpGet httpGet = new HttpGet(uri);			
-			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveResponseHandler());
-			if (rawResponse != null) {				
-				photo = createPhotoFromMap(rawResponse);	
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpGet httpGet = new HttpGet(uri);
+			Map<Object, Object> rawResponse = httpClient.execute(httpGet, new OneDriveJsonToMapResponseHandler());
+			if (rawResponse != null) {
+				photo = createPhotoFromMap(rawResponse);
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+		} catch (Exception e) {
+			throw new IOException("Error getting photo: " + photoId, e);
 		}
 		
 		return photo;
@@ -159,19 +138,16 @@ public class PhotoService {
 						.addParameter("access_token", accessToken)
 						.addParameter("downsize_photo_uploads", "false")
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();
-		
-		try {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 			HttpPut httpPut = new HttpPut(uri);
 			ByteArrayEntity imageEntity = new ByteArrayEntity(bytes);
-			httpPut.setEntity(imageEntity);					
-			
-			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveResponseHandler());
+			httpPut.setEntity(imageEntity);
+
+			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				//newPhoto = getPhoto(accessToken, rawResponse.get("id").toString());
 				//newPhoto = createPhotoFromMap(rawResponse);
@@ -180,12 +156,8 @@ public class PhotoService {
 				newPhoto.setName((String) rawResponse.get("name"));
 				newPhoto.setId((String) rawResponse.get("id"));
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+		} catch (Exception e) {
+			throw new IOException("Error uploading photo", e);
 		}				
 		
 		return newPhoto;
@@ -230,38 +202,31 @@ public class PhotoService {
 						.setHost(API_HOST)
 						.setPath("/" + photoId)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid album path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid album path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();
-		
-		try {
-			Map<String, String> params = new HashMap<String, String>();
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			Map<String, String> params = new HashMap<>();
 			params.put("description", description);
-			
+
 			final Gson gson = new GsonBuilder().create();
 			String jsonString = gson.toJson(params);
 			StringEntity jsonEntity = new StringEntity(jsonString);
 			jsonEntity.setContentType(new BasicHeader("Content-Type", "application/json"));
-			
+
 			HttpPut httpPut = new HttpPut(uri);
 			httpPut.setHeader("Authorization", "Bearer " + accessToken);
-			httpPut.setEntity(jsonEntity);					
-			
-			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveResponseHandler());
+			httpPut.setEntity(jsonEntity);
+
+			Map<Object, Object> rawResponse = httpClient.execute(httpPut, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
 				updatedPhoto = createPhotoFromMap(rawResponse);
 				// Do not get the photo id. revert to the original prior to the update
 				updatedPhoto.setId(photoId);
-			}	
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			httpClient.close();
+			}
+		} catch (Exception e) {
+			throw new IOException("Error uploading photo description", e);
 		}
 		
 		return updatedPhoto;
@@ -282,27 +247,24 @@ public class PhotoService {
 						.setPath("/" + photoId)
 						.addParameter("access_token", accessToken)
 						.build();
-		} catch (URISyntaxException e) {			
-			e.printStackTrace();
-			throw new IllegalStateException("Invalid photo path");
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Invalid photo path", e);
 		}
-						
-		CloseableHttpClient httpClient = HttpClients.createDefault();			
-		
-		try {						
-			HttpDelete httpDelete = new HttpDelete(uri);						
-			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveResponseHandler());
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpDelete httpDelete = new HttpDelete(uri);
+			Map<Object, Object> rawResponse = httpClient.execute(httpDelete, new OneDriveJsonToMapResponseHandler());
 			if (rawResponse != null) {
-				System.out.println(rawResponse);					
-			}	
-		} finally {
-			httpClient.close();
+				System.out.println(rawResponse);
+			}
 		}
 	}
 	
 	private Photo createPhotoFromMap(Map<Object, Object> responseMap) {
-		for (Object k : responseMap.keySet()) {
-			System.out.println(k + " : " + responseMap.get(k));
+		if (logger.isDebugEnabled()) {
+			for (Object k : responseMap.keySet()) {
+				logger.debug(k + " : " + responseMap.get(k));
+			}
 		}
 		
 		SimpleDateFormat dtFormat = new SimpleDateFormat("YYYY-MM-dd'T'HH:mm:ssZ");	
@@ -376,10 +338,8 @@ public class PhotoService {
 				photo.setCreatedTime(dtFormat.parse((String) responseMap.get("created_time")));
 				photo.setUpdatedTime(dtFormat.parse((String) responseMap.get("updated_time")));
 				photo.setClientUpdateTime(dtFormat.parse((String) responseMap.get("client_updated_time")));																
-			} catch (ParseException e) {
-				e.printStackTrace();
 			} catch (Exception e) {
-				e.printStackTrace();
+				throw new IllegalStateException("Error getting photo", e);
 			}
 		}
 		

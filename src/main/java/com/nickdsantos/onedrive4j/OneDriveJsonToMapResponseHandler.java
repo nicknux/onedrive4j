@@ -24,7 +24,7 @@ import com.google.gson.GsonBuilder;
  * @param <T>
  *
  */
-public class OneDriveResponseHandler implements ResponseHandler<Map<Object,Object>> {
+public class OneDriveJsonToMapResponseHandler implements ResponseHandler<Map<Object,Object>> {
 
 	/* (non-Javadoc)
 	 * @see org.apache.http.client.ResponseHandler#handleResponse(org.apache.http.HttpResponse)
